@@ -1,44 +1,72 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Put,
-    Delete,
-    Patch,
-    Req,
-    HttpCode,
-    Res,
-    Header,
-    Param,
-    Query,
-    Body
-} from "@nestjs/common";
-import { of } from "rxjs";
-import { Request, Response } from "express";
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put
+} from '@nestjs/common';
+import { CreateUserDTO } from './dto/index';
 
+let USER = [];
 
-interface UserDTO {
-    name: string;
-    email: string;
-}
-
-
-@Controller("/users")
-
+@Controller('/users')
 export class UserController {
-    @Get("/profile")
-    @Header('cache-control', 'none')
-    @Header('X-Name', 'Juwel')
-    getProfile(@Query() query: Record<string, any>, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-        console.log('query', query);
-        res.status(200);
-        return of({ profile: "This is user profile" });
-        // res.json({ profile: "This is user profile" });
-    }
 
-    @Post("/profile")
-    postProfile(@Body() requestData: UserDTO, @Req() req: Request) {
-        console.log('requestData', requestData);
-        return of({ profile: "This is user profile" });
+  @Post('/add-user')
+  addUser(@Body() createUserDto: CreateUserDTO) {
+    USER.push(createUserDto);
+    return {
+      status: true,
+      message: 'User added successfully'
     }
+  }
+
+
+  @Get()
+  getUsers() {
+    return USER;
+  }
+
+
+  @Get(':id')
+  getUser(@Param('id') id: number) {
+    return USER.find((user) => +user.id === +id);
+  }
+
+  @Put('/put-user/:id')
+  updateUser(@Param('id') id: number, @Body() createUserDto: CreateUserDTO) {
+    const userIndex = USER.findIndex((user) => +user.id === +id);
+    if (userIndex > -1) {
+      USER[userIndex] = createUserDto;
+      return {
+        status: true,
+        message: 'User updated successfully'
+      }
+    } else {
+      return {
+        status: false,
+        message: 'User not found'
+      }
+    }
+  }
+
+  @Delete('/delete-user/:id')
+  deleteUsers(@Param('id') id: number,) {
+    USER = USER.filter((user) => +user.id !== +id);
+    if (USER) {
+      return {
+        status: true,
+        message: 'User deleted successfully'
+      }
+    } else {
+      return {
+        status: false,
+        message: 'User not found'
+      }
+    }
+  }
+
+
 }
